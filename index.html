@@ -23,7 +23,7 @@
             <h3>학습</h3>
             <div class="btnwrap">
             <!-- 학습리스트 필터 -->
-            <div class="btn-group" role="group">
+            <div class="btn-group" role="group" id="study-filter">
                 <!-- 선택된 버튼에만 active 속성 추가 -->
                 <button type="button" class="btn btn-outline-primary active">
                 모두
@@ -38,12 +38,12 @@
             </div>
             </div>
         </div>
-
+        
         <!-- loading중에 표시합니다. -->
-        <!-- <div class="spinner-border" role="status">
+        <div class="spinner-border" role="status" id="study-loading">
             <span class="visually-hidden">Loading...</span>
-        </div> -->
-        <table class="table">
+        </div>
+        <table class="table" id="studyTable">
             <thead>
             <tr>
                 <th scope="col">주차</th>
@@ -143,10 +143,10 @@
         </div>
 
         <!-- loading중에 표시합니다. -->
-        <!-- <div class="spinner-border" role="status">
+        <div class="spinner-border" role="status" id="quiz-loading">
             <span class="visually-hidden">Loading...</span>
-        </div> -->
-        <table class="table">
+        </div>
+        <table class="table" id="quizTable">
             <thead>
             <tr>
                 <!-- title -->
