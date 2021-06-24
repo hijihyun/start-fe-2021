@@ -9,17 +9,19 @@ let tempQuizData = '';
 
 const $studyFilters = document.querySelector('#studyFilters').children;
 const studyFiltersLength = $studyFilters.length;
-const $quizFilters = document.querySelector('#quizFilters').children;
-const quizFiltersLength = $quizFilters.length;
 const $studyLoading = document.querySelector('#studyLoading');
 const $studyTable = document.querySelector('#studyTable');
+const $studyTableBody = document.querySelector('#studyTableBody');
+
+const $quizFilters = document.querySelector('#quizFilters').children;
+const quizFiltersLength = $quizFilters.length;
 const $quizLoading = document.querySelector('#quizLoading');
 const $quizTable = document.querySelector('#quizTable');
-const $tStudyBody = document.querySelector('#tStudyBody');
-const $tQuizBody = document.querySelector('#tQuizBody');
+const $quizTableBody = document.querySelector('#quizTableBody');
 
 // ========== 1. 각 탭이 선택되면 선택된 탭 class(active) 적용 ==========
-function addStudyFilterActive(event) {
+function studyFilter(event) {
+	// 로딩 스피너
 	studyLoading();
 	setTimeout(studyLoaded, 500);
 
@@ -36,13 +38,16 @@ function addStudyFilterActive(event) {
 	el.className += ' active'; // className에 active 추가
 	$studySelect = el; // 클릭할 때마다 $select에 저장
 
-	$tStudyBody.innerHTML = '';
-	filterStudyJson(el.id);
+	// json 로드
+	$studyTableBody.innerHTML = '';
+	loadStudyJson(el.id);
 }
 
-function addQuizFilterActive(event) {
+function quizFilter(event) {
+	// 로딩 스피너
 	quizLoading();
 	setTimeout(quizLoaded, 500);
+
 	$quizFilters[0].className = $quizFilters[0].className.replace(
 		' active',
 		'',
@@ -56,16 +61,9 @@ function addQuizFilterActive(event) {
 	el.className += ' active';
 	$quizSelect = el;
 
-	$tQuizBody.innerHTML = '';
-	filterQuizJson(el.id);
-}
-
-for (let i = 0; i < studyFiltersLength; i++) {
-	$studyFilters[i].addEventListener('click', addStudyFilterActive);
-}
-
-for (let i = 0; i < quizFiltersLength; i++) {
-	$quizFilters[i].addEventListener('click', addQuizFilterActive);
+	// json 로드
+	$quizTableBody.innerHTML = '';
+	loadQuizJson(el.id);
 }
 
 // ========== 2. 로딩 ==========
@@ -90,43 +88,15 @@ function quizLoaded() {
 }
 
 // ========== 3. fetch로 json 로드 ==========
-function loadStudyJson() {
-	return fetch('class.json').then(function (response) {
-		response
-			.json()
-			.then(function (data) {
-				console.log('json data:', data);
-				displayStudyAll(data);
-			})
-			.catch(function (err) {
-				console.log('Fetch Error :-S', err);
-			});
-	});
-}
-
-function loadQuizJson() {
-	return fetch('quiz.json').then(function (response) {
-		response
-			.json()
-			.then(function (data) {
-				console.log('json data:', data);
-				displayQuizAll(data);
-			})
-			.catch(function (err) {
-				console.log('Fetch Error :-S', err);
-			});
-	});
-}
-
 // ========== 4. 필터링 ==========
-function filterStudyJson(btnId) {
+function loadStudyJson(btnId) {
 	return fetch('class.json').then(function (response) {
 		response
 			.json()
 			.then(function (data) {
 				console.log('json data:', data);
 
-				if (btnId === 'studyAllBtn') {
+				if (btnId === 'studyAllBtn' || btnId === '') {
 					displayStudyAll(data);
 				} else if (btnId === 'studyLinkBtn') {
 					displayStudyLink(data);
@@ -142,14 +112,14 @@ function filterStudyJson(btnId) {
 	});
 }
 
-function filterQuizJson(btnId) {
+function loadQuizJson(btnId) {
 	return fetch('quiz.json').then(function (response) {
 		response
 			.json()
 			.then(function (data) {
 				console.log('json data:', data);
 
-				if (btnId === 'quizAllBtn') {
+				if (btnId === 'quizAllBtn' || btnId === '') {
 					displayQuizAll(data);
 				} else if (btnId === 'quizGitBtn') {
 					displayQuizGit(data);
@@ -161,175 +131,126 @@ function filterQuizJson(btnId) {
 	});
 }
 
+// 학습 모두 버튼
 function displayStudyAll(data) {
 	for (let i = 0; i < data.length; i++) {
-		tempStudyData += `
-    <tr>
-      <th scope="row">${i + 1}</th>
-      <td>${data[i].title}</td>
-      <td>
-      <a href="${data[i].docUrl}"
-      class="badge bg-secondary">
-      문서</a></td>
-      <td>`;
-
-		if (data[i].links.length > 0) {
-			for (let j = 0; j < data[i].links.length; j++) {
-				tempStudyData += `
-        <a href="${data[i].links[j]}"
-        class="badge bg-secondary">${j + 1}
-        </a>`;
-			}
-		}
-
-		tempStudyData += `</td><td>${data[i].date}</td><td>`;
-
-		if (data[i].gitUrl.length > 0) {
-			tempStudyData += `<a href="${data[i].gitUrl}">git</a>`;
-		}
-		tempStudyData += `</td></tr>`;
+		createStudyHTML(data, i);
 	}
-	$tStudyBody.innerHTML = tempStudyData;
-	tempStudyData = '';
+	addStudyHTML();
 }
 
+// 학습 도움링크 버튼
 function displayStudyLink(data) {
 	for (let i = 0; i < data.length; i++) {
 		if (data[i].links.length === 0) {
 			continue;
 		}
-		tempStudyData += `
-    <tr>
-      <th scope="row">${i + 1}</th>
-      <td>${data[i].title}</td>
-      <td>
-      <a href="${data[i].docUrl}"
-      class="badge bg-secondary">
-      문서</a></td>
-      <td>`;
-
-		for (let j = 0; j < data[i].links.length; j++) {
-			tempStudyData += `
-        <a href="${data[i].links[j]}"
-        class="badge bg-secondary">${j + 1}
-        </a>`;
-		}
-
-		tempStudyData += `</td><td>${data[i].date}</td><td>`;
-
-		if (data[i].gitUrl.length > 0) {
-			tempStudyData += `<a href="${data[i].gitUrl}">git</a>`;
-		}
-		tempStudyData += `</td></tr>`;
+		createStudyHTML(data, i);
 	}
-	$tStudyBody.innerHTML = tempStudyData;
-	tempStudyData = '';
+	addStudyHTML();
 }
 
+// 학습 git 버튼
 function displayStudyGit(data) {
 	for (let i = 0; i < data.length; i++) {
 		if (data[i].gitUrl.length === 0) {
 			continue;
 		}
-		tempStudyData += `
-    <tr>
-      <th scope="row">${i + 1}</th>
-      <td>${data[i].title}</td>
-      <td>
-      <a href="${data[i].docUrl}"
-      class="badge bg-secondary">
-      문서</a></td>
-      <td>`;
-
-		for (let j = 0; j < data[i].links.length; j++) {
-			tempStudyData += `
-        <a href="${data[i].links[j]}"
-        class="badge bg-secondary">${j + 1}
-        </a>`;
-		}
-
-		tempStudyData += `</td><td>${data[i].date}</td><td>`;
-
-		if (data[i].gitUrl.length > 0) {
-			tempStudyData += `<a href="${data[i].gitUrl}">git</a>`;
-		}
-		tempStudyData += `</td></tr>`;
+		createStudyHTML(data, i);
 	}
-	$tStudyBody.innerHTML = tempStudyData;
-	tempStudyData = '';
+	addStudyHTML();
 }
 
+// 학습 최신순 버튼
 function displayStudyNew(data) {
+	// ========== 5. 모듈화, 함수화 ==========
 	data.sort(date_descending);
-
 	for (let i = 0; i < data.length; i++) {
-		tempStudyData += `
-    <tr>
-      <th scope="row">${i + 1}</th>
-      <td>${data[i].title}</td>
-      <td>
-      <a href="${data[i].docUrl}"
-      class="badge bg-secondary">
-      문서</a></td>
-      <td>`;
-
-		for (let j = 0; j < data[i].links.length; j++) {
-			tempStudyData += `
-        <a href="${data[i].links[j]}"
-        class="badge bg-secondary">${j + 1}
-        </a>`;
-		}
-
-		tempStudyData += `</td><td>${data[i].date}</td><td>`;
-
-		if (data[i].gitUrl.length > 0) {
-			tempStudyData += `<a href="${data[i].gitUrl}">git</a>`;
-		}
-		tempStudyData += `</td></tr>`;
+		createStudyHTML(data, i);
 	}
-	$tStudyBody.innerHTML = tempStudyData;
-	tempStudyData = '';
+	addStudyHTML();
 }
 
+// 퀴즈 모두 버튼
 function displayQuizAll(data) {
 	for (let i = 0; i < data.length; i++) {
-		tempQuizData += `
-    <tr>
-      <td>${data[i].title}</td>
-      <td>
-      <a href="${data[i].docUrl}"
-      class="badge bg-secondary">
-      문서</a></td>
-      <td><a href="${data[i].previewUrl}">보기</a></td>
-      <td><a href="${data[i].gitUrl}">git</a></td>
-    </tr>`;
+		createQuizHTML(data, i);
 	}
-	$tQuizBody.innerHTML = tempQuizData;
-	tempQuizData = '';
+	addQuizHTML();
 }
 
+// 퀴즈 git 버튼
 function displayQuizGit(data) {
 	for (let i = 0; i < data.length; i++) {
 		if (data[i].gitUrl.length === 0) {
 			continue;
 		}
-		tempQuizData += `
-    <tr>
-      <td>${data[i].title}</td>
-      <td>
-      <a href="${data[i].docUrl}"
-      class="badge bg-secondary">
-      문서</a></td>
-      <td><a href="${data[i].previewUrl}">보기</a></td>
-      <td><a href="${data[i].gitUrl}">git</a></td>
-    </tr>`;
+		createQuizHTML(data, i);
 	}
-	$tQuizBody.innerHTML = tempQuizData;
+	addQuizHTML();
+}
+
+// 중복 되는 코드 함수화
+function createStudyHTML(data, i) {
+	tempStudyData += `
+    <tr>
+		<th scope="row">${i + 1}</th>
+		<td>${data[i].title}</td>
+		<td>
+		<a href="${data[i].docUrl}"
+		class="badge bg-secondary">
+		문서</a></td>
+		<td>`;
+
+	for (let j = 0; j < data[i].links.length; j++) {
+		tempStudyData += `
+        <a href="${data[i].links[j]}"
+        class="badge bg-secondary">${j + 1}
+        </a>`;
+	}
+
+	tempStudyData += `</td><td>${data[i].date}</td><td>`;
+
+	if (data[i].gitUrl.length > 0) {
+		tempStudyData += `<a href="${data[i].gitUrl}">git</a>`;
+	}
+	tempStudyData += `</td></tr>`;
+}
+
+function addStudyHTML() {
+	$studyTableBody.innerHTML = tempStudyData;
+	tempStudyData = '';
+}
+
+function createQuizHTML(data, i) {
+	tempQuizData += `
+    <tr>
+		<td>${data[i].title}</td>
+		<td>
+		<a href="${data[i].docUrl}"
+		class="badge bg-secondary">
+		문서</a></td>
+		<td><a href="${data[i].previewUrl}">보기</a></td>
+		<td><a href="${data[i].gitUrl}">git</a></td>
+    </tr>`;
+}
+
+function addQuizHTML() {
+	$quizTableBody.innerHTML = tempQuizData;
 	tempQuizData = '';
 }
 
-// 초기화면
+// ========== 0. 초기 화면 ==========
+// 이벤트 추가
+for (let i = 0; i < studyFiltersLength; i++) {
+	$studyFilters[i].addEventListener('click', studyFilter);
+}
+
+for (let i = 0; i < quizFiltersLength; i++) {
+	$quizFilters[i].addEventListener('click', quizFilter);
+}
+
 studyLoaded();
 quizLoaded();
-loadStudyJson();
-loadQuizJson();
+loadStudyJson('');
+loadQuizJson('');
