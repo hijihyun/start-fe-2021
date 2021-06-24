@@ -6,14 +6,13 @@ let quizData = null;
 let tempStudyData = "";
 let tempQuizData = "";
 
-const $studyFilters = document.querySelector("#study-filter").children;
+const $studyFilters = document.querySelector("#studyFilters").children;
 const studyFiltersLength = $studyFilters.length;
-const $quizFilters = document.querySelector("#quiz-filter").children;
+const $quizFilters = document.querySelector("#quizFilters").children;
 const quizFiltersLength = $quizFilters.length;
-
-const $studyLoading = document.querySelector("#study-loading");
+const $studyLoading = document.querySelector("#studyLoading");
 const $studyTable = document.querySelector("#studyTable");
-const $quizLoading = document.querySelector("#quiz-loading");
+const $quizLoading = document.querySelector("#quizLoading");
 const $quizTable = document.querySelector("#quizTable");
 const $tStudyBody = document.querySelector("#tStudyBody");
 const $tQuizBody = document.querySelector("#tQuizBody");
@@ -35,6 +34,9 @@ function addStudyFilterActive(event) {
   const el = event.currentTarget;
   el.className += " active"; // className에 active 추가
   $studySelect = el; // 클릭할 때마다 $select에 저장
+
+  $tStudyBody.innerHTML = "";
+  filterStudyJson(el.id);
 }
 
 function addQuizFilterActive(event) {
@@ -49,6 +51,9 @@ function addQuizFilterActive(event) {
   const el = event.currentTarget;
   el.className += " active";
   $quizSelect = el;
+
+  $tQuizBody.innerHTML = "";
+  filterQuizJson(el.id);
 }
 
 for (let i = 0; i < studyFiltersLength; i++) {
@@ -80,9 +85,6 @@ function quizLoaded() {
   $quizTable.style.display = "";
 }
 
-studyLoaded();
-quizLoaded();
-
 // ========== 3. fetch로 json 로드 ==========
 function loadStudyJson() {
   return fetch("class.json").then(function (response) {
@@ -90,7 +92,30 @@ function loadStudyJson() {
       .json()
       .then(function (data) {
         console.log("json data:", data);
-        displayStudyItems(data);
+        displayStudyAll(data);
+      })
+      .catch(function (err) {
+        console.log("Fetch Error :-S", err);
+      });
+  });
+}
+
+function filterStudyJson(btnId) {
+  return fetch("class.json").then(function (response) {
+    response
+      .json()
+      .then(function (data) {
+        console.log("json data:", data);
+
+        if (btnId === "studyAllBtn") {
+          displayStudyAll(data);
+        } else if (btnId === "studyLinkBtn") {
+          displayStudyLink(data);
+        } else if (btnId === "studyGitBtn") {
+          displayStudyGit(data);
+        } else if (btnId === "studyNewBtn") {
+          displayStudyNew(data);
+        }
       })
       .catch(function (err) {
         console.log("Fetch Error :-S", err);
@@ -104,7 +129,7 @@ function loadQuizJson() {
       .json()
       .then(function (data) {
         console.log("json data:", data);
-        displayQuizItems(data);
+        displayQuizAll(data);
       })
       .catch(function (err) {
         console.log("Fetch Error :-S", err);
@@ -112,7 +137,26 @@ function loadQuizJson() {
   });
 }
 
-function displayStudyItems(data) {
+function filterQuizJson(btnId) {
+  return fetch("quiz.json").then(function (response) {
+    response
+      .json()
+      .then(function (data) {
+        console.log("json data:", data);
+
+        if (btnId === "quizAllBtn") {
+          displayQuizAll(data);
+        } else if (btnId === "quizGitBtn") {
+          displayQuizGit(data);
+        }
+      })
+      .catch(function (err) {
+        console.log("Fetch Error :-S", err);
+      });
+  });
+}
+
+function displayStudyAll(data) {
   for (let i = 0; i < data.length; i++) {
     tempStudyData += `
     <tr>
@@ -133,15 +177,122 @@ function displayStudyItems(data) {
       }
     }
 
-    tempStudyData += `</td>
-      <td>${data[i].date}</td>
-      <td><a href="${data[i].gitUrl}">git</a></td>
-    </tr>`;
+    tempStudyData += `</td><td>${data[i].date}</td><td>`;
+
+    if (data[i].gitUrl.length > 0) {
+      tempStudyData += `<a href="${data[i].gitUrl}">git</a>`;
+    }
+    tempStudyData += `</td></tr>`;
   }
   $tStudyBody.innerHTML = tempStudyData;
+  tempStudyData = "";
 }
 
-function displayQuizItems(data) {
+function displayStudyLink(data) {
+  for (let i = 0; i < data.length; i++) {
+    if (data[i].links.length === 0) {
+      continue;
+    }
+    tempStudyData += `
+    <tr>
+      <th scope="row">${i + 1}</th>
+      <td>${data[i].title}</td>
+      <td>
+      <a href="${data[i].docUrl}"
+      class="badge bg-secondary">
+      문서</a></td>
+      <td>`;
+
+    for (let j = 0; j < data[i].links.length; j++) {
+      tempStudyData += `
+        <a href="${data[i].links[j]}"
+        class="badge bg-secondary">${j + 1}
+        </a>`;
+    }
+
+    tempStudyData += `</td><td>${data[i].date}</td><td>`;
+
+    if (data[i].gitUrl.length > 0) {
+      tempStudyData += `<a href="${data[i].gitUrl}">git</a>`;
+    }
+    tempStudyData += `</td></tr>`;
+  }
+  $tStudyBody.innerHTML = tempStudyData;
+  tempStudyData = "";
+}
+
+function displayStudyGit(data) {
+  for (let i = 0; i < data.length; i++) {
+    if (data[i].gitUrl.length === 0) {
+      continue;
+    }
+    tempStudyData += `
+    <tr>
+      <th scope="row">${i + 1}</th>
+      <td>${data[i].title}</td>
+      <td>
+      <a href="${data[i].docUrl}"
+      class="badge bg-secondary">
+      문서</a></td>
+      <td>`;
+
+    for (let j = 0; j < data[i].links.length; j++) {
+      tempStudyData += `
+        <a href="${data[i].links[j]}"
+        class="badge bg-secondary">${j + 1}
+        </a>`;
+    }
+
+    tempStudyData += `</td><td>${data[i].date}</td><td>`;
+
+    if (data[i].gitUrl.length > 0) {
+      tempStudyData += `<a href="${data[i].gitUrl}">git</a>`;
+    }
+    tempStudyData += `</td></tr>`;
+  }
+  $tStudyBody.innerHTML = tempStudyData;
+  tempStudyData = "";
+}
+
+function displayStudyNew(data) {
+  data.sort(date_descending);
+
+  for (let i = 0; i < data.length; i++) {
+    tempStudyData += `
+    <tr>
+      <th scope="row">${i + 1}</th>
+      <td>${data[i].title}</td>
+      <td>
+      <a href="${data[i].docUrl}"
+      class="badge bg-secondary">
+      문서</a></td>
+      <td>`;
+
+    for (let j = 0; j < data[i].links.length; j++) {
+      tempStudyData += `
+        <a href="${data[i].links[j]}"
+        class="badge bg-secondary">${j + 1}
+        </a>`;
+    }
+
+    tempStudyData += `</td><td>${data[i].date}</td><td>`;
+
+    if (data[i].gitUrl.length > 0) {
+      tempStudyData += `<a href="${data[i].gitUrl}">git</a>`;
+    }
+    tempStudyData += `</td></tr>`;
+  }
+  $tStudyBody.innerHTML = tempStudyData;
+  tempStudyData = "";
+}
+
+function date_descending(a, b) {
+  var dateA = new Date(a["date"]).getTime();
+  var dateB = new Date(b["date"]).getTime();
+  return dateA < dateB ? 1 : -1;
+}
+
+function displayQuizAll(data) {
   for (let i = 0; i < data.length; i++) {
     tempQuizData += `
     <tr>
@@ -155,7 +306,30 @@ function displayQuizItems(data) {
     </tr>`;
   }
   $tQuizBody.innerHTML = tempQuizData;
+  tempQuizData = "";
 }
 
+function displayQuizGit(data) {
+  for (let i = 0; i < data.length; i++) {
+    if (data[i].gitUrl.length === 0) {
+      continue;
+    }
+    tempQuizData += `
+    <tr>
+      <td>${data[i].title}</td>
+      <td>
+      <a href="${data[i].docUrl}"
+      class="badge bg-secondary">
+      문서</a></td>
+      <td><a href="${data[i].previewUrl}">보기</a></td>
+      <td><a href="${data[i].gitUrl}">git</a></td>
+    </tr>`;
+  }
+  $tQuizBody.innerHTML = tempQuizData;
+  tempQuizData = "";
+}
+// 초기화면
+studyLoaded();
+quizLoaded();
 loadStudyJson();
 loadQuizJson();
