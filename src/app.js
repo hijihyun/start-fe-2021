@@ -2,7 +2,7 @@ import date_descending from './utils.js';
 import './app.css';
 
 // ========== 0. 변수선언 ==========
-let $studySelect = null; // 클릭할 때마다 저장되어야 하므로 전역변수
+let $studySelect = null; // 클릭할 때마다 저장
 let $quizSelect = null;
 let tempStudyData = '';
 let tempQuizData = '';
