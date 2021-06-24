@@ -1,6 +1,10 @@
 // ========== 0. 변수선언 ==========
 let $studySelect = null; // 클릭할 때마다 저장되어야 하므로 전역변수
 let $quizSelect = null;
+let studyData = null;
+let quizData = null;
+let tempStudyData = "";
+let tempQuizData = "";
 
 const $studyFilters = document.querySelector("#study-filter").children;
 const studyFiltersLength = $studyFilters.length;
@@ -11,6 +15,8 @@ const $studyLoading = document.querySelector("#study-loading");
 const $studyTable = document.querySelector("#studyTable");
 const $quizLoading = document.querySelector("#quiz-loading");
 const $quizTable = document.querySelector("#quizTable");
+const $tStudyBody = document.querySelector("#tStudyBody");
+const $tQuizBody = document.querySelector("#tQuizBody");
 
 // ========== 1. 각 탭이 선택되면 선택된 탭 class(active) 적용 ==========
 function addStudyFilterActive(event) {
@@ -76,3 +82,80 @@ function quizLoaded() {
 
 studyLoaded();
 quizLoaded();
+
+// ========== 3. fetch로 json 로드 ==========
+function loadStudyJson() {
+  return fetch("class.json").then(function (response) {
+    response
+      .json()
+      .then(function (data) {
+        console.log("json data:", data);
+        displayStudyItems(data);
+      })
+      .catch(function (err) {
+        console.log("Fetch Error :-S", err);
+      });
+  });
+}
+
+function loadQuizJson() {
+  return fetch("quiz.json").then(function (response) {
+    response
+      .json()
+      .then(function (data) {
+        console.log("json data:", data);
+        displayQuizItems(data);
+      })
+      .catch(function (err) {
+        console.log("Fetch Error :-S", err);
+      });
+  });
+}
+
+function displayStudyItems(data) {
+  for (let i = 0; i < data.length; i++) {
+    tempStudyData += `
+    <tr>
+      <th scope="row">${i + 1}</th>
+      <td>${data[i].title}</td>
+      <td>
+      <a href="${data[i].docUrl}"
+      class="badge bg-secondary">
+      문서</a></td>
+      <td>`;
+
+    if (data[i].links.length > 0) {
+      for (let j = 0; j < data[i].links.length; j++) {
+        tempStudyData += `
+        <a href="${data[i].links[j]}"
+        class="badge bg-secondary">${j + 1}
+        </a>`;
+      }
+    }
+
+    tempStudyData += `</td>
+      <td>${data[i].date}</td>
+      <td><a href="${data[i].gitUrl}">git</a></td>
+    </tr>`;
+  }
+  $tStudyBody.innerHTML = tempStudyData;
+}
+
+function displayQuizItems(data) {
+  for (let i = 0; i < data.length; i++) {
+    tempQuizData += `
+    <tr>
+      <td>${data[i].title}</td>
+      <td>
+      <a href="${data[i].docUrl}"
+      class="badge bg-secondary">
+      문서</a></td>
+      <td><a href="${data[i].previewUrl}">보기</a></td>
+      <td><a href="${data[i].gitUrl}">git</a></td>
+    </tr>`;
+  }
+  $tQuizBody.innerHTML = tempQuizData;
+}
+
+loadStudyJson();
+loadQuizJson();
